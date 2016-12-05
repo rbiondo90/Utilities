@@ -47,9 +47,9 @@ public class Date implements Comparable<Date> {
     }
 
     public Date(int day, Month month, int year) throws IllegalDateException {
+        this.setYear(year);
         this.setDay(day);
         this.setMonth(month);
-        this.setYear(year);
     }
 
     public Date(int day, int month, int year) throws IllegalDateException {
@@ -108,14 +108,22 @@ public class Date implements Comparable<Date> {
     }
 
     private void setDayAndMonth(int dayOfTheYear) throws IllegalDateException {
-        if (dayOfTheYear > 365 || dayOfTheYear < 0) {
+        if (dayOfTheYear > this.daysOfTheYear() || dayOfTheYear < 0) {
             throw new IllegalDateException("Invalid day of the year!");
         }
+        boolean leap = this.isLeapYear();
         int dayCount = 0;
         int monthToSet = 1;
         while (dayCount + Month.monthFromIndex(monthToSet).getMonthDays() < dayOfTheYear) {
             dayCount += Month.monthFromIndex(monthToSet).getMonthDays();
+            if (monthToSet == 2 && leap) {
+                dayCount++;
+            }
             monthToSet++;
+        }
+        if (dayOfTheYear - dayCount == 0) {
+            monthToSet--;
+            dayOfTheYear += 29;
         }
         this.setMonth(Month.monthFromIndex(monthToSet));
         this.setDay(dayOfTheYear - dayCount);
@@ -163,7 +171,6 @@ public class Date implements Comparable<Date> {
         }
     }
 
-    @Override
     public String toString() {
         return this.toString("GG/MM/AAAA");
     }
@@ -178,9 +185,13 @@ public class Date implements Comparable<Date> {
 
     private int getDayOfTheYear() {
         int dayOfTheYear = this.getDay();
+        boolean leap = this.isLeapYear();
         try {
             for (int m = 1; m < this.getMonth().getIndex(); m++) {
                 dayOfTheYear += Month.monthFromIndex(m).getMonthDays();
+                if (m == 2 && leap) {
+                    dayOfTheYear++;
+                }
             }
         } catch (IllegalDateException exc) {
 
@@ -189,6 +200,10 @@ public class Date implements Comparable<Date> {
     }
 
     private boolean checkDayAndMonth(int day, Month month) {
+        boolean leap = this.isLeapYear();
+        if (leap && month == Month.FEBRUARY) {
+            return day <= 29;
+        }
         return (day <= month.getMonthDays());
     }
 
@@ -225,10 +240,10 @@ public class Date implements Comparable<Date> {
         return d;
     }
 
-    public Date addYears(int anni) {
+    public Date addYears(int years) {
         Date d = null;
         try {
-            d = new Date(this.getDay(), this.getMonth(), this.getYear() + anni);
+            d = new Date(this.getDay(), this.getMonth(), this.getYear() + years);
         } catch (IllegalDateException exc) {
         }
         return d;
@@ -255,5 +270,45 @@ public class Date implements Comparable<Date> {
         } else {
             throw new NullPointerException();
         }
+    }
+
+    public static boolean isLeapYear(int year) {
+        if (year < 0) {
+            throw new IllegalArgumentException("Year cannot be negative!");
+        }
+        if (year < 8) {
+            return false;
+        }
+        if (year % 4 == 0) {
+            if (year % 100 == 0) {
+                return year % 400 == 0;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isLeapYear() {
+        return isLeapYear(this.getYear());
+    }
+
+    public int daysOfTheYear() {
+        if (this.isLeapYear()) {
+            return 366;
+        } else {
+            return 365;
+        }
+    }
+
+    public static void main(String args[]) {
+        Date date = new Date();
+        try {
+            date = new Date(60, 8);
+        } catch (IllegalDateException ex) {
+        }
+        date.print();
+        System.out.println(date.isLeapYear());
     }
 }
