@@ -36,16 +36,8 @@ public class Utils {
     }
 
     public static int randomIntInRange(int min, int max) {
-        if (min < 0) {
-            min = 0;
-        }
-        if (max < 0) {
-            max = 0;
-        }
         if (max < min) {
-            int tmp = min;
-            min = max;
-            max = min;
+            throw new IllegalArgumentException("Wrong range! Minimum must be smaller than maximum!");
         }
         return (min + random.nextInt(max + 1 - min));
     }
@@ -62,4 +54,5 @@ public class Utils {
         }
         return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
+
 }
